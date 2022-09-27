@@ -8,8 +8,8 @@ import UserController from '@/resources/user/user.controller';
 validateEnv();
 
 const app = new App(
-    [new PostController(), new UserController()],
-    Number(process.env.PORT)
+  [new PostController(), new UserController()],
+  Number(process.env.PORT)
 );
 
 app.listen();
