@@ -10,4 +10,5 @@ export default interface User extends Document {
 
   isValidPassword(password: string): Promise<Error | boolean>;
   createAccountActivationLink(): string;
+  createPasswordResetToken(): string;
 }

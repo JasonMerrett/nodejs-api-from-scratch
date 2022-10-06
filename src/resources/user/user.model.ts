@@ -36,6 +36,22 @@ const UserSchema = new Schema(
       enum: ['admin', 'user'],
       default: 'user',
     },
+    isActivated: {
+      type: Boolean,
+      default: false,
+    },
+    activationLink: {
+      type: String,
+      select: false,
+    },
+    passwordResetToken: {
+      type: String,
+      select: false,
+    },
+    passwordResetExpires: {
+      type: Date,
+      select: false,
+    },
   },
   {
     timestamps: true,
@@ -84,6 +100,19 @@ UserSchema.methods.isValidPassword = async function (
   password: string
 ): Promise<Error | boolean> {
   return await bcrypt.compare(password, this.password);
+};
+
+UserSchema.methods.createPasswordResetToken = function (): string {
+  const resetToken = crypto.randomBytes(32).toString('hex');
+  console.log(resetToken);
+  this.passwordResetToken = crypto
+    .createHash('sha256')
+    .update(resetToken)
+    .digest('hex');
+
+  // console.log({ resetToken }, this.passwordResetToken);
+  this.passwordResetExpires = Date.now() + 10 * 60 * 1000;
+  return resetToken;
 };
 
 export default model<User>('User', UserSchema);

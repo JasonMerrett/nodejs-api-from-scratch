@@ -33,6 +33,12 @@ class AuthController implements Controller {
       validationMiddleware(validate.signUp),
       this.signUp
     );
+
+    this.router.get(`${this.path}/confirmMail/:token`, this.confirmMail);
+    this.router.patch(`${this.path}/update-password`, this.updatePassword);
+    // this.router.patch(`${this.path}/forgot-password`, this.forgotPassword);
+    // this.router.patch(`${this.path}/reset-password`, this.forgotPassword);
+    // this.router.patch(`${this.path}/-password`, this.forgotPassword);
   }
 
   private login = async (
@@ -87,6 +93,90 @@ class AuthController implements Controller {
       });
 
       res.status(HTTPCodes.CREATED).json({ user, token });
+    } catch (error: any) {
+      next(new HttpException(HTTPCodes.BAD_REQUEST, error.message));
+    }
+  };
+
+  private confirmMail = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response | void> => {
+    try {
+      const { token } = req.params;
+
+      const user = await this.AuthService.confirmMail(token);
+
+      user.active = true;
+      user.activationLink = undefined;
+
+      res.status(HTTPCodes.OK).json({ user });
+    } catch (error: any) {
+      next(new HttpException(HTTPCodes.BAD_REQUEST, error.message));
+    }
+  };
+
+  private updatePassword = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response | void> => {
+    try {
+      const { password, passwordConfirm } = req.body;
+
+      const user = await this.AuthService.updatePassword(
+        req.user.email,
+        password,
+        passwordConfirm
+      );
+
+      user.password = undefined;
+      user.passwordConfirm = undefined;
+
+      res.status(HTTPCodes.OK).json({ user });
+    } catch (error: any) {
+      next(new HttpException(HTTPCodes.BAD_REQUEST, error.message));
+    }
+  };
+
+  private forgotPassword = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response | void> => {
+    try {
+      const { email } = req.body;
+
+      const user = await this.AuthService.forgotPassword(email);
+
+      user.password = undefined;
+      user.passwordConfirm = undefined;
+
+      res.status(HTTPCodes.OK).json({ user });
+    } catch (error: any) {
+      next(new HttpException(HTTPCodes.BAD_REQUEST, error.message));
+    }
+  };
+
+  private resetPassword = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response | void> => {
+    try {
+      const { email, password, passwordConfirm } = req.body;
+
+      const user = await this.AuthService.resetPassword(
+        email,
+        password,
+        passwordConfirm
+      );
+
+      user.password = undefined;
+      user.passwordConfirm = undefined;
+
+      res.status(HTTPCodes.OK).json({ user });
     } catch (error: any) {
       next(new HttpException(HTTPCodes.BAD_REQUEST, error.message));
     }
