@@ -2,56 +2,47 @@ import UserModel from '@/resources/user/user.model';
 import token from '@/utils/token';
 
 class UserService {
-    private user = UserModel;
+  private user = UserModel;
 
-    /**
-     * Register a new user
-     */
-    public async register(
-        name: string,
-        email: string,
-        password: string,
-        role: string
-    ): Promise<string | Error> {
-        try {
-            const user = await this.user.create({
-                name,
-                email,
-                password,
-                role,
-            });
+  /**
+   * Register a new user
+   */
 
-            const accessToken = token.createToken(user);
+  /**
+   * Attempt to login a user
+   */
 
-            return accessToken;
-        } catch (error) {
-            throw new Error(error.message);
-        }
+  public async getAllUsers(): Promise<any> {
+    try {
+      const users = await this.user.find();
+      return users;
+    } catch (error) {
+      throw new Error('Unable to fetch users');
     }
+  }
 
-    /**
-     * Attempt to login a user
-     */
-    public async login(
-        email: string,
-        password: string
-    ): Promise<string | Error> {
-        try {
-            const user = await this.user.findOne({ email });
+  public async getUser(id: string): Promise<any> {
+    const user = await this.user.findById(id);
+    return user;
+  }
 
-            if (!user) {
-                throw new Error('Unable to find user with that email address');
-            }
+  public async updateUser(id: string, body: Body): Promise<any> {
+    const user = await this.user.findByIdAndUpdate(
+      id,
+      {
+        ...body,
+      },
+      {
+        new: true,
+      }
+    );
+    return user;
+  }
 
-            if (await user.isValidPassword(password)) {
-                return token.createToken(user);
-            } else {
-                throw new Error('Wrong credentials given');
-            }
-        } catch (error) {
-            throw new Error('Unable to create user');
-        }
-    }
+  public async deleteUser(id: string): Promise<any> {
+    const user = await this.user.findByIdAndDelete(id);
+    return user;
+  }
 }
 
 export default UserService;
