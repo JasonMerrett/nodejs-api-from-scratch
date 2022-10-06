@@ -40,7 +40,9 @@ class AuthService {
 
     const accessToken = token.createToken(user);
 
-    return { user, token: accessToken };
+    const activationToken = user.createAccountActivationLink();
+
+    return { user, token: accessToken, activationToken };
   }
 }
 

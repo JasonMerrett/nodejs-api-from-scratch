@@ -7,6 +7,7 @@ import UserService from '@/resources/user/user.service';
 import authenticated from '@/middleware/authenticated.middleware';
 import { HTTPCodes } from '@/utils/helpers/response';
 import AuthService from './auth.service';
+import { sendMail } from '@/utils/helpers/email';
 
 class AuthController implements Controller {
   public path = '/auth';
@@ -62,7 +63,7 @@ class AuthController implements Controller {
       const { firstName, lastName, passwordConfirm, email, password } =
         req.body;
 
-      const { user, token } = await this.AuthService.signUp(
+      const { user, token, activationToken } = await this.AuthService.signUp(
         firstName,
         lastName,
         email,
@@ -72,6 +73,18 @@ class AuthController implements Controller {
 
       user.password = undefined;
       user.passwordConfirm = undefined;
+
+      let activationURL = `${req.headers.origin}/confirmMail/${activationToken}`;
+      const message = `GO to this link to activate your App Account : ${activationURL} .`;
+
+      sendMail({
+        email: user.email,
+        message,
+        subject: 'Your Account Activation Link for Package App !',
+        user,
+        template: 'signup.ejs',
+        url: activationURL,
+      });
 
       res.status(HTTPCodes.CREATED).json({ user, token });
     } catch (error: any) {

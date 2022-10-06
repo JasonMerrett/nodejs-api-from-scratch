@@ -9,4 +9,5 @@ export default interface User extends Document {
   role: string;
 
   isValidPassword(password: string): Promise<Error | boolean>;
+  createAccountActivationLink(): string;
 }

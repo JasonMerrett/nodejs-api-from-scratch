@@ -6,6 +6,7 @@ import morgan from 'morgan';
 import Controller from '@/utils/interfaces/controller.interface';
 import ErrorMiddleware from '@/middleware/error.middleware';
 import helmet from 'helmet';
+import path from 'path';
 
 class App {
   public express: Application;
@@ -19,9 +20,15 @@ class App {
     this.initialiseMiddleware();
     this.initialiseControllers(controllers);
     this.initialiseErrorHandling();
+
+    return this;
   }
 
   private initialiseMiddleware(): void {
+    // view engine setup
+    this.express.set('view engine', 'ejs');
+    this.express.set('views', path.join(__dirname, 'views'));
+
     this.express.use(helmet());
     this.express.use(cors());
     this.express.use(morgan('dev'));
