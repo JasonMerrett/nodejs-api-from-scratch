@@ -1,38 +1,69 @@
-import { Schema, model } from 'mongoose';
+import { Schema, model, SchemaType } from 'mongoose';
 import bcrypt from 'bcrypt';
 import User from '@/resources/user/user.interface';
+import validator from 'validator';
 
 const UserSchema = new Schema(
   {
-    name: {
+    firstName: {
       type: String,
-      required: true,
+      required: [true, 'First Name is required!'],
+      trim: true,
+    },
+    lastName: {
+      type: String,
+      required: [true, 'Last Name is required!'],
+      trim: true,
     },
     email: {
       type: String,
-      required: true,
+      required: [true, 'Email is required'],
       unique: true,
       trim: true,
     },
     password: {
       type: String,
+      required: [true, 'Password is required'],
+      select: false,
+    },
+    passwordConfirm: {
+      type: String,
+      required: [true, 'PasswordConfirm is required'],
     },
     role: {
       type: String,
-      required: true,
+      enum: ['admin', 'user'],
+      default: 'user',
     },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+    toJSON: {
+      virtuals: true,
+    },
+    toObject: {
+      virtuals: true,
+    },
+  }
 );
+
+UserSchema.virtual('fullName').get(function () {
+  return `${this.firstName} ${this.lastName}`;
+});
 
 UserSchema.pre<User>('save', async function (next) {
   if (!this.isModified('password')) {
     return next();
   }
 
+  if (!(this.password === this.passwordConfirm)) {
+    throw Error('Password and Confirm password did not match');
+  }
+
   const hash = await bcrypt.hash(this.password, 10);
 
   this.password = hash;
+  this.passwordConfirm = '';
 
   next();
 });

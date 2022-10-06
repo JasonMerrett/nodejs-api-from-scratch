@@ -7,47 +7,41 @@ class UserService {
   /**
    * Register a new user
    */
-  public async register(
-    name: string,
-    email: string,
-    password: string,
-    role: string
-  ): Promise<string | Error> {
-    try {
-      const user = await this.user.create({
-        name,
-        email,
-        password,
-        role,
-      });
-
-      const accessToken = token.createToken(user);
-
-      return accessToken;
-    } catch (error) {
-      throw new Error(error.message);
-    }
-  }
 
   /**
    * Attempt to login a user
    */
-  public async login(email: string, password: string): Promise<string | Error> {
+
+  public async getAllUsers(): Promise<any> {
     try {
-      const user = await this.user.findOne({ email });
-
-      if (!user) {
-        throw new Error('Unable to find user with that email address');
-      }
-
-      if (await user.isValidPassword(password)) {
-        return token.createToken(user);
-      } else {
-        throw new Error('Wrong credentials given');
-      }
+      const users = await this.user.find();
+      return users;
     } catch (error) {
-      throw new Error('Unable to create user');
+      throw new Error('Unable to fetch users');
     }
+  }
+
+  public async getUser(id: string): Promise<any> {
+    const user = await this.user.findById(id);
+    return user;
+  }
+
+  public async updateUser(id: string, body: Body): Promise<any> {
+    const user = await this.user.findByIdAndUpdate(
+      id,
+      {
+        ...body,
+      },
+      {
+        new: true,
+      }
+    );
+    return user;
+  }
+
+  public async deleteUser(id: string): Promise<any> {
+    const user = await this.user.findByIdAndDelete(id);
+    return user;
   }
 }
 
